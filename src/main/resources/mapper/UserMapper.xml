@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="car.erp.dao.UserMapper">
+    <resultMap type="car.erp.model.User" id="userMap">
+        <id property="id" column="id" />
+        <result property="userName" column="userName" />
+        <result property="phone" column="phone" />
+        <result property="carNum" column="carNum" />
+        <result property="safeDate" column="safeDate" />
+        <result property="maintainDate" column="maintainDate" />
+        <result property="maintainCount" column="maintainCount" />
+        <result property="auditDate" column="auditDate" />
+        <result property="buyDate" column="buyDate" />
+        <result property="birthday" column="birthday" />
+        <result property="isAudit" column="isAudit" />
+    </resultMap>
+    <select id="getUserList" resultMap="userMap" parameterType="car.erp.model.query.UserQuery">
+      select c.id id,
+             c.user_name userName,
+             c.phone phone,
+             c.car_num carNum,
+             c.safe_date safeDate, 
+             c.audit_date auditDate,
+             c.maintain_Date maintainDate,
+             (select COUNT(1) from maintain_detail where owner_id = c.id) maintainCount,
+             c.buy_date buyDate,
+             c.birthday birthday,
+             c.is_audit isAudit
+      from car_owner c where 1=1
+      <if test="ownerName != null and ownerName != ''">
+      	And c.user_name like CONCAT('%',#{ownerName},'%')
+      </if>
+      <if test="carNum != null and carNum != ''">
+      	And c.car_num like CONCAT('%',#{carNum},'%')
+      </if>
+      <if test="startBirthday != null and startBirthday != ''">
+		And c.birthday &gt;= #{startBirthday}
+	  </if>
+	  <if test="endBirthday != null and endBirthday != ''">
+		And c.birthday &lt;= #{endBirthday}
+	  </if>
+	  <if test="changeQuery == 1">
+	    And date_format(c.birthday,'%m%d') between
+		date_format(now(),'%m%d')
+		and date_format(date_add(now(), interval 7 day),'%m%d')
+	  </if>
+	  <if test="changeQuery == 2">
+        And c.audit_date BETWEEN DATE_SUB(NOW(),INTERVAL 365 DAY) AND DATE_SUB(NOW(),INTERVAL 395 DAY)
+	  </if>
+	  <if test="changeQuery == 3">
+        AND c.safe_date BETWEEN NOW() AND date_add(NOW(), INTERVAL 7 DAY)
+	  </if>
+	  order by id DESC
+    </select>
+    
+    <select id="loadUserById" resultMap="userMap">
+      select c.id id,
+             c.user_name userName,
+             c.phone phone,
+             c.car_num carNum,
+             c.safe_date safeDate,
+             c.audit_date auditDate,
+             c.maintain_Date maintainDate,
+             c.buy_date buyDate,
+             c.birthday birthday,
+             c.is_audit isAudit
+      from car_owner c
+      where id = #{id}
+    </select>
+    
+    <select id="getMaintainList" resultType="car.erp.model.MaintainDetail" parameterType="car.erp.model.query.MaintainQuery">
+      select d.id id,
+      		 d.maintain_Date maintainDate,
+      		 c.user_name userName,
+             c.car_num carNum,
+             g.goods_name goodsName
+      from maintain_detail d
+      left join car_owner c on d.owner_id = c.id
+      left join car_goods g on d.goods_id = g.id
+      where d.owner_id = #{masterId}
+      order by id DESC
+    </select>
+    
+    <insert id="saveUser" parameterType="car.erp.model.User">
+    	insert into 
+    	car_owner(user_name,car_num,phone,safe_date,audit_date,maintain_Date,buy_date,birthday,is_audit) 
+    	values(#{userName},#{carNum},#{phone},#{safeDate},#{auditDate},#{maintainDate},#{buyDate},#{birthday},#{isAudit});
+    </insert>
+    
+    <insert id="addMaintain" parameterType="java.util.Map">
+    	insert into 
+    	maintain_detail(owner_id,goods_id,maintain_date) 
+    	values(#{masterId},#{goodsId},#{maintainDate});
+    </insert>
+    
+    <update id="updateUser" parameterType="car.erp.model.User">
+    	update car_owner c set
+    		c.user_name = #{userName},
+    		c.car_num = #{carNum},
+    		c.phone = #{phone},
+    		c.safe_date = #{safeDate},
+            c.audit_date = #{auditDate},
+            c.maintain_Date = #{maintainDate},
+            c.buy_date = #{buyDate},
+    		c.birthday = #{birthday},
+    		c.is_audit = #{isAudit}
+    	where c.id = #{id}
+    </update>
+    
+    <delete id="delete">
+    	delete from car_owner
+    		where id = #{id}
+    </delete>
+    
+    <delete id="deleteMaintain">
+    	delete from maintain_detail
+    		where id = #{id}
+    </delete>
+</mapper>
