@@ -9,17 +9,17 @@ import java.sql.SQLException;
 
 public class JDBCConnectionUtils {
 
-//    @Value("${jdbc.driverClassName}")
-    private static String DRIVER_CLASS_NAME="com.mysql.cj.jdbc.Driver";
+    @Value("${jdbc.driverClassName}")
+    private static String DRIVER_CLASS_NAME;
 
-//    @Value("${jdbc.url}")
-    private static String URL="jdbc:mysql://127.0.0.1:3306/qxerp?useUnicode=true&characterEncoding=utf8&useSSL=true&serverTimezone=GMT";
+    @Value("${jdbc.url}")
+    private static String URL;
 
-//    @Value("${jdbc.userName}")
-    private static String USER_NAME="root";
+    @Value("${jdbc.userName}")
+    private static String USER_NAME;
 
-//    @Value("${jdbc.password}")
-    private static String PASSWORD="root";
+    @Value("${jdbc.password}")
+    private static String PASSWORD;
 
     private static Connection conn = null;
 
